@@ -1,11 +1,11 @@
 import telebot
 import config
 import time
-import utils
+#import utils
 import views
 from telebot import types
 bot = telebot.TeleBot(config.token)
-bot.send_message(message.chat.id, 'Чтобы начать игру, выберите команду /game')
+#bot.send_message(message.chat.id, 'Чтобы начать игру, выберите команду /game')
 n=1
 score = 0
 @bot.message_handler(commands=['game'])
@@ -13,7 +13,16 @@ def game(message):
     db_worker = views(config.database2_name)
     row = db_worker.select_single2(n)
     n=n+1
-    markup = utils.generate_markup(row[3], row[4])
+    #markup = utils.generate_markup(row[3], row[4])
+    markup = types.InlineKeyboardMarkup()
+    all_answers = '{},{}'.format(row[3], row[4])
+    list_items = []
+    for item in all_answers.split(','):
+        list_items.append(item)
+    shuffle(list_items)
+    for item in list_items:
+        markup.add(item)
+    return markup
     bot.send_message(message.chat.id, row[2], inline_markup=markup)
     #utils.set_user_game(message.chat.id, row[2])
     db_worker.close2()
@@ -32,7 +41,16 @@ def check_answer(message):
     if n<6:
         n=n+1
         row = db_worker.select_single2(n)
-        markup = utils.generate_markup(row[3], row[4])
+        #markup = utils.generate_markup(row[3], row[4])
+        markup = types.InlineKeyboardMarkup()
+        all_answers = '{},{}'.format(row[3], row[4])
+        list_items = []
+        for item in all_answers.split(','):
+            list_items.append(item)
+        shuffle(list_items)
+        for item in list_items:
+            markup.add(item)
+        return markup
         bot.send_message(message.chat.id, row[2], inline_markup=markup)
     db_worker.close2()
     # utils.finish_user_game(message.chat.id)   
