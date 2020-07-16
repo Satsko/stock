@@ -1,1 +1,4 @@
-token = '1103967722:AAF0GWPqEdc8ZyC5LLoLdNP6Af2Sl3LKYKw'
+token = '1081145733:AAGrWmYI-DsxwNlTL0IeiZ3cGuSdisJopNA'
+#database1_name = 'kvest_user.db'
+database2_name = 'kvest_point.sql'
+
