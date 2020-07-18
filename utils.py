@@ -6,14 +6,6 @@ import ast
 import re
 
 
-#def set_user_game(chat_id, estimated_answer):
-
-#def finish_user_game(chat_id):
-
-#def get_answer_for_user(chat_id):
-
-
-
 def generate_markup(right_answer, wrong_answers):
 
     markup = types.InlineKeyboardMarkup()
