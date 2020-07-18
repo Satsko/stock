@@ -1,32 +1,27 @@
-import sqlite3
+import peewee
+import models
+import datetime
+
+#def init(self):
+#    cursor = self.cursor()
+    
+def select_point(self,rownum,col):
+    cursor = self.cursor()
+    return cursor.execute('SELECT ' + col +' FROM point WHERE id = ' + str(rownum)).fetchall()
+    self.close()
+    
+def select_user(self,rownum,col):
+    cursor = self.cursor()
+    return cursor.execute('SELECT ' + col +' FROM user WHERE id = ' + str(rownum)).fetchall()
+    self.close()
+
+#def close(self):
+#    self.close()
+
+def add_user(self,name,sc):
+    cursor = self.cursor()
+    #print(sc)
+    models.User.create(username = name,join_date = datetime.date.today(),score = sc)
+    self.close()
 
 
-class views:
-    def __init1__(self, database1):
-        self.connection = sqlite3.connect(database1)
-        self.cursor = self.connection.cursor()
-
-    def select_single1(self, rownum):
-        with self.connection:
-            return self.cursor.execute('SELECT * FROM kvest_user WHERE id = ?', (rownum,)).fetchall()[0]
-          
-
-    def close1(self):
-        self.connection.close()
-
-
-    def __init2__(self, database2):
-        self.connection = sqlite3.connect(database2)
-        self.cursor = self.connection.cursor()
-
-    def select_single2(self, rownum):
-        with self.connection:
-            return self.cursor.execute('SELECT * FROM kvest_point WHERE id = ?', (rownum,)).fetchall()[0]
-
-    def count_rows2(self):
-        with self.connection:
-            result = self.cursor.execute('SELECT * FROM kvest_point').fetchall()
-            return len(result)
-
-    def close2(self):
-        self.connection.close()

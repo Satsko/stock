@@ -1,60 +1,77 @@
 import telebot
 import config
-import time
-#import utils
+import utils
 import views
+import models
+import re
+
 from telebot import types
 bot = telebot.TeleBot(config.token)
-#bot.send_message(message.chat.id, 'Чтобы начать игру, выберите команду /game')
+
+@bot.message_handler(commands=['start'])
+def start(message):
+    bot.send_message(message.chat.id, 'Чтобы начать игру, выберите команду /game')  
+
 n=1
 score = 0
+init = 0
+name = ''
+
 @bot.message_handler(commands=['game'])
 def game(message):
-    db_worker = views(config.database2_name)
-    row = db_worker.select_single2(n)
-    n=n+1
-    #markup = utils.generate_markup(row[3], row[4])
-    markup = types.InlineKeyboardMarkup()
-    all_answers = '{},{}'.format(row[3], row[4])
-    list_items = []
-    for item in all_answers.split(','):
-        list_items.append(item)
-    shuffle(list_items)
-    for item in list_items:
-        markup.add(item)
-    return markup
-    bot.send_message(message.chat.id, row[2], inline_markup=markup)
-    #utils.set_user_game(message.chat.id, row[2])
-    db_worker.close2()
+    global init
+    init = 1
+    bot.send_message(message.chat.id, 'Введите ваше имя: ')  
     
-
-@bot.message_handler(func=lambda message: True, content_types=['text'])
-def check_answer(message):
-    db_worker = views(config.database2_name)
-    row = db_worker.select_single2(n)
-    answer = row[3]
-    if message.text == answer:
-        bot.send_message(message.chat.id, 'Верно!')
-        score=score+row[1]
+    
+@bot.callback_query_handler(func=lambda call: True)
+def query_handler(call):
+    global n
+    global score
+    global name
+    bot.answer_callback_query(callback_query_id=call.id, text='...')
+    answer=''
+    r_ans = str(views.select_point(models.db,n,'right_answer'))
+    r_ans = re.sub(r"[(,)]","", r_ans)
+    r_ans = r_ans[2 : -2]
+    #print(r_ans)
+    if call.data == r_ans:
+        answer = 'верный'
+        #print(str(views.select_point(models.db,n,'score'))[2 : -3])
+        score = score + int(str(views.select_point(models.db,n,'score'))[2 : -3])
     else:
-       bot.send_message(message.chat.id, 'Неверно', reply_markup=keyboard_hider)
+        answer = 'неверный'
+    bot.send_message(call.message.chat.id, 'Ответ '+call.data+' '+answer+'. Текущий счет: '+str(score))
+    n=n+1    
+    
     if n<6:
-        n=n+1
-        row = db_worker.select_single2(n)
-        #markup = utils.generate_markup(row[3], row[4])
-        markup = types.InlineKeyboardMarkup()
-        all_answers = '{},{}'.format(row[3], row[4])
-        list_items = []
-        for item in all_answers.split(','):
-            list_items.append(item)
-        shuffle(list_items)
-        for item in list_items:
-            markup.add(item)
-        return markup
-        bot.send_message(message.chat.id, row[2], inline_markup=markup)
-    db_worker.close2()
-    # utils.finish_user_game(message.chat.id)   
-    bot.send_message(message.chat.id, 'Score: '+str(score))   
+        row = views.select_point(models.db,n,'question')
+        row_r = views.select_point(models.db,n,'right_answer')
+        row_w = views.select_point(models.db,n,'wrong_answers')
+        markup = utils.generate_markup(row_r,row_w)
+        bot.send_message(call.message.chat.id, row, reply_markup=markup)
+    else:
+        bot.send_message(call.message.chat.id, 'Игра окончена. Итоговый счет: '+str(score))
+        views.add_user(models.db,name,score)
+        
+@bot.message_handler(content_types=["text"])
+def username(message):
+    global init
+    global name
+    if init == 1:
+        name = message.text
+        init = 0
+        #views.add_user(models.db,name)
+        global n
+        n=1
+        #views.init(models.db)
+        row = views.select_point(models.db,n,'question')
+        row_r = views.select_point(models.db,n,'right_answer')
+        row_w = views.select_point(models.db,n,'wrong_answers')
+        markup = utils.generate_markup(row_r,row_w)
+        bot.send_message(message.chat.id, row, reply_markup=markup)
+        #views.close(models.db)
+
 
 if __name__ == '__main__':
     bot.infinity_polling()

@@ -1,7 +1,11 @@
 from peewee import *
 
-db1 = SqliteDatabase('kvest_user.db')
-db2 = SqliteDatabase('kvest_point.db')
+db = SqliteDatabase('kvest.db')
+
+class BaseModel(Model):
+    class Meta:
+        databases = db
+
 
 class User(Model):
     username = CharField()
@@ -9,7 +13,8 @@ class User(Model):
     score = int
 
     class Meta:
-        database = db1
+        database = db
+        table_name = 'User'
         
 
 class Point(Model):
@@ -19,4 +24,4 @@ class Point(Model):
     wrong_answer = CharField()
 
     class Meta:
-        database = db2
+        database = db
